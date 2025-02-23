@@ -53,6 +53,7 @@ char* strdup(const char *str)
 #include "log/LogManager.h"
 #include "cheats.h"
 #include "rend/CustomTexture.h"
+#include <stdio.h>
 
 #if defined(_XBOX) || defined(_WIN32)
 char slash = '\\';
@@ -2103,83 +2104,140 @@ size_t retro_get_memory_size(unsigned type)
    return 0; //TODO
 }
 
-size_t retro_serialize_size (void)
+size_t retro_serialize_size(void)
 {
-   unsigned int total_size = 0 ;
-   void *data = NULL ;
+    unsigned int total_size = 0;
+    void *data = NULL;
 
-   dc_serialize(&data, &total_size) ;
+    // Log entry into the function
+    printf("Entering retro_serialize_size function...\n");
 
-   return total_size;
+    // Call dc_serialize and log the data pointer and total_size
+    printf("Calling dc_serialize with data=%p, total_size=%u\n", data, total_size);
+    dc_serialize(&data, &total_size);
+
+    // Log the result after serialization
+    printf("dc_serialize called, data=%p, total_size=%u\n", data, total_size);
+
+    // Return the total size and log it
+    printf("Returning total_size: %u\n", total_size);
+    return total_size;
 }
+
+
 
 bool wait_until_dc_running()
 {
-	retro_time_t start_time = perf_cb.get_time_usec();
-	const retro_time_t FIVE_SECONDS = 5*1000000 ;
-	while(!dc_is_running())
-	{
-		if ( start_time+FIVE_SECONDS < perf_cb.get_time_usec() )
-		{
-			//timeout elapsed - dc not getting a chance to run - just bail
-			return false ;
-		}
-	}
-	return true ;
+    retro_time_t start_time = perf_cb.get_time_usec();
+    const retro_time_t FIVE_SECONDS = 5 * 1000000;
+
+    printf("Starting wait_until_dc_running...\n");
+
+    while (!dc_is_running())
+    {
+        retro_time_t current_time = perf_cb.get_time_usec();
+        printf("Current time: %lld, Start time: %lld, Time elapsed: %lld\n", current_time, start_time, current_time - start_time);
+
+        if (start_time + FIVE_SECONDS < current_time)
+        {
+            // timeout elapsed - dc not getting a chance to run - just bail
+            printf("Timeout elapsed, DC not running.\n");
+            return false;
+        }
+    }
+
+    printf("DC is running.\n");
+    return true;
 }
 
 bool acquire_mainloop_lock()
 {
-	bool result = false ;
-	retro_time_t start_time = perf_cb.get_time_usec();
-	const retro_time_t FIVE_SECONDS = 5*1000000 ;
+    bool result = false;
+    retro_time_t start_time = perf_cb.get_time_usec();
+    const retro_time_t FIVE_SECONDS = 5 * 1000000;
 
-    while ( ( start_time+FIVE_SECONDS > perf_cb.get_time_usec() ) && !(result = mtx_mainloop.trylock())  )
-   	{
-    	rend_cancel_emu_wait();
-   	}
+    printf("Starting acquire_mainloop_lock...\n");
 
-    return result ;
+    while ((start_time + FIVE_SECONDS > perf_cb.get_time_usec()) && !(result = mtx_mainloop.trylock()))
+    {
+        retro_time_t current_time = perf_cb.get_time_usec();
+        printf("Trying to acquire mainloop lock, current time: %lld, elapsed: %lld\n", current_time, current_time - start_time);
+
+        rend_cancel_emu_wait(); // Assuming this is a function that handles something when waiting for lock
+    }
+
+    if (result)
+    {
+        printf("Mainloop lock acquired.\n");
+    }
+    else
+    {
+        printf("Failed to acquire mainloop lock within timeout.\n");
+    }
+
+    return result;
 }
+
+#include <stdio.h>
 
 bool retro_serialize(void *data, size_t size)
 {
-   unsigned int total_size = 0 ;
-   void *data_ptr = data ;
-   bool result = false ;
+    unsigned int total_size = 0;
+    void *data_ptr = data;
+    bool result = false;
+
+    printf("Starting retro_serialize...\n");
 
 #if !defined(TARGET_NO_THREADS)
-	mtx_serialization.lock();
+    printf("Attempting to lock serialization mutex...\n");
+    mtx_serialization.lock();
+    
     if (settings.rend.ThreadedRendering)
     {
-    	if ( !wait_until_dc_running())
-      {
-        	mtx_serialization.unlock();
-        	return false ;
-    	}
+        printf("Threaded rendering enabled, waiting for DC to be running...\n");
+        if (!wait_until_dc_running())
+        {
+            printf("DC not running, unlocking serialization mutex and returning false.\n");
+            mtx_serialization.unlock();
+            return false;
+        }
 
-  		dc_stop();
-  		if ( !acquire_mainloop_lock())
-  		{
-  			dc_start();
-        	mtx_serialization.unlock();
-  			return false ;
-  		}
+        printf("DC stopped, acquiring mainloop lock...\n");
+        dc_stop();
+        if (!acquire_mainloop_lock())
+        {
+            printf("Failed to acquire mainloop lock, restarting DC and unlocking serialization mutex.\n");
+            dc_start();
+            mtx_serialization.unlock();
+            return false;
+        }
     }
 #endif
 
-   result = dc_serialize(&data_ptr, &total_size) ;
-   performed_serialization = true ;
+    printf("Calling dc_serialize function...\n");
+    result = dc_serialize(&data_ptr, &total_size);
+    performed_serialization = true;
+
+    if (result)
+    {
+        printf("Serialization successful, total_size: %u\n", total_size);
+    }
+    else
+    {
+        printf("Serialization failed.\n");
+    }
 
 #if !defined(TARGET_NO_THREADS)
     if (settings.rend.ThreadedRendering)
     {
-    	mtx_mainloop.unlock();
+        printf("Threaded rendering enabled, unlocking mainloop mutex...\n");
+        mtx_mainloop.unlock();
     }
-	mtx_serialization.unlock();
+    printf("Unlocking serialization mutex...\n");
+    mtx_serialization.unlock();
 #endif
 
-    return result ;
+    return result;
 }
 
 bool retro_unserialize(const void * data, size_t size)
