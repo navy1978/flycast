@@ -2252,18 +2252,18 @@ bool retro_unserialize(const void * data, size_t size)
 #if !defined(TARGET_NO_THREADS)
     if (settings.rend.ThreadedRendering)
     {
-    	mtx_serialization.lock();
+    	//mtx_serialization.lock();
     	if ( !wait_until_dc_running()) {
         	mtx_serialization.unlock();
         	return false ;
     	}
-  		dc_stop();
+  		/*dc_stop();
   		if ( !acquire_mainloop_lock())
   		{
   			dc_start();
         	mtx_serialization.unlock();
   			return false ;
-  		}
+  		}*/
     }
 #endif
 
@@ -2296,7 +2296,7 @@ bool retro_unserialize(const void * data, size_t size)
     if (settings.rend.ThreadedRendering)
     {
     	mtx_mainloop.unlock();
-    	mtx_serialization.unlock();
+    	//mtx_serialization.unlock();
     }
 #endif
 
