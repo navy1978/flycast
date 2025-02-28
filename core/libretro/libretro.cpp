@@ -912,7 +912,8 @@ static void update_variables(bool first_startup)
 #if !defined(TARGET_NO_THREADS)
    if (first_startup)
    {
-	   var.key = CORE_OPTION_NAME "_threaded_rendering";
+	   printf("CICCIO DI NONNA PAPAERA!!!!...\n");
+      var.key = CORE_OPTION_NAME "_threaded_rendering";
 
 	   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
 	   {
