@@ -97,8 +97,6 @@ char slash = '/';
 #include "libretro_core_option_defines.h"
 #include "libretro_core_options.h"
 
-
-
 u32 fskip;
 extern int screen_width;
 extern int screen_height;
@@ -2130,22 +2128,12 @@ size_t retro_serialize_size(void)
 
 bool wait_until_dc_running()
 {
-    retro_time_t start_time = perf_cb.get_time_usec();
-    const retro_time_t FIVE_SECONDS = 5 * 1000000;
-
+    
     printf("Starting wait_until_dc_running...\n");
 
     while (!dc_is_running())
     {
-        retro_time_t current_time = perf_cb.get_time_usec();
-        printf("Current time: %lld, Start time: %lld, Time elapsed: %lld\n", current_time, start_time, current_time - start_time);
-
-        if (start_time + FIVE_SECONDS < current_time)
-        {
-            // timeout elapsed - dc not getting a chance to run - just bail
-            printf("Timeout elapsed, DC not running.\n");
-            return false;
-        }
+      printf("waiting\n");
     }
 
     printf("DC is running.\n");
@@ -2188,16 +2176,11 @@ bool retro_serialize(void *data, size_t size)
     void *data_ptr = data;
     bool result = false;
 
-    printf("Starting retro_serialize... setting TARGETNO_THREAD to 1\n");
-
-    #ifndef TARGET_NO_THREADS
-    #define TARGET_NO_THREADS 1
-    #endif
-
+    printf("Starting retro_serialize...\n");
 
 #if !defined(TARGET_NO_THREADS)
     printf("Attempting to lock serialization mutex...\n");
-    mtx_serialization.lock();
+    //mtx_serialization.lock();
     
     if (settings.rend.ThreadedRendering)
     {
@@ -2205,19 +2188,19 @@ bool retro_serialize(void *data, size_t size)
         if (!wait_until_dc_running())
         {
             printf("DC not running, unlocking serialization mutex and returning false.\n");
-            mtx_serialization.unlock();
+            //mtx_serialization.unlock();
             return false;
         }
 
         printf("DC stopped, acquiring mainloop lock...\n");
-        dc_stop();
-        if (!acquire_mainloop_lock())
+        //dc_stop();
+        /*if (!acquire_mainloop_lock())
         {
             printf("Failed to acquire mainloop lock, restarting DC and unlocking serialization mutex.\n");
             dc_start();
             mtx_serialization.unlock();
             return false;
-        }
+        }*/
     }
 #endif
 
@@ -2238,44 +2221,38 @@ bool retro_serialize(void *data, size_t size)
     if (settings.rend.ThreadedRendering)
     {
         printf("Threaded rendering enabled, unlocking mainloop mutex...\n");
-        mtx_mainloop.unlock();
+        //mtx_mainloop.unlock();
     }
     printf("Unlocking serialization mutex...\n");
-    mtx_serialization.unlock();
+    //mtx_serialization.unlock();
 #endif
-
-#ifdef TARGET_NO_THREADS
-#undef TARGET_NO_THREADS
-#endif
-
+printf("end serialize...\n");
     return result;
 }
 
 bool retro_unserialize(const void * data, size_t size)
 {
+   printf("retro_unserialize ongoing...\n");
    unsigned int total_size = 0 ;
    void *data_ptr = (void*)data ;
    bool result = false ;
    int i ;
 
-   #ifndef TARGET_NO_THREADS
-    #define TARGET_NO_THREADS 1
-    #endif
 #if !defined(TARGET_NO_THREADS)
     if (settings.rend.ThreadedRendering)
     {
-    	mtx_serialization.lock();
+    	//mtx_serialization.lock();
     	if ( !wait_until_dc_running()) {
-        	mtx_serialization.unlock();
+        	//mtx_serialization.unlock();
         	return false ;
     	}
-  		dc_stop();
+  		/*dc_stop();
   		if ( !acquire_mainloop_lock())
   		{
   			dc_start();
         	mtx_serialization.unlock();
   			return false ;
-  		}
+  		}*/
     }
 #endif
 
@@ -2285,15 +2262,21 @@ bool retro_unserialize(const void * data, size_t size)
 #ifndef NO_MMU
     mmu_flush_table();
 #endif
+   printf("retro_unserialize resetting...\n");
     bm_Reset();
+    printf("retro_unserialize terminate...\n");
     custom_texture.Terminate();
-
+    printf("retro_unserialize unserializing...\n");
     result = dc_unserialize(&data_ptr, &total_size, size) ;
-
+    printf("retro_unserialize set state...\n");
     mmu_set_state();
+    printf("retro_unserialize reset cache...\n");
     sh4_cpu.ResetCache();
+    printf("retro_unserialize dyndirty...\n");
     dsp.dyndirty = true;
+    printf("retro_unserialize sh4_sched_ffts...\n");
     sh4_sched_ffts();
+    printf("retro_unserialize CalculateSync...\n");
     CalculateSync();
 
     for ( i = 0 ; i < 4 ; i++)
@@ -2301,21 +2284,17 @@ bool retro_unserialize(const void * data, size_t size)
        vmu_screen_params[i].vmu_screen_needs_update = true ;
        lightgun_params[i].dirty = true ;
     }
-
+    printf("retro_unserialize performed_serialization...\n");
     performed_serialization = true ;
 
 #if !defined(TARGET_NO_THREADS)
     if (settings.rend.ThreadedRendering)
     {
-    	mtx_mainloop.unlock();
-    	mtx_serialization.unlock();
+    	//mtx_mainloop.unlock();
+    	//mtx_serialization.unlock();
     }
 #endif
-
-#ifdef TARGET_NO_THREADS
-#undef TARGET_NO_THREADS
-#endif
-
+printf("end..\n");
     return result ;
 }
 
