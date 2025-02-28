@@ -2270,8 +2270,8 @@ bool retro_unserialize(const void * data, size_t size)
     result = dc_unserialize(&data_ptr, &total_size, size) ;
     printf("retro_unserialize set state...\n");
     mmu_set_state();
-    printf("retro_unserialize reset cache...\n");
-    sh4_cpu.ResetCache();
+    //printf("retro_unserialize reset cache...\n");
+    //sh4_cpu.ResetCache();
     printf("retro_unserialize dyndirty...\n");
     dsp.dyndirty = true;
     printf("retro_unserialize sh4_sched_ffts...\n");
