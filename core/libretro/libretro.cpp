@@ -2230,14 +2230,6 @@ printf("end serialize...\n");
     return result;
 }
 
-static void context_reset_after_restore(void)
-{
-    INFO_LOG(RENDERER, "context_reset_after_restore.");
-    gl_ctx_resetting = false;
-    glsm_ctl(GLSM_CTL_STATE_CONTEXT_RESET, NULL);
-    glsm_ctl(GLSM_CTL_STATE_SETUP, NULL);
-}
-
 bool retro_unserialize(const void * data, size_t size)
 {
    printf("retro_unserialize ongoing...\n");
@@ -2275,16 +2267,13 @@ bool retro_unserialize(const void * data, size_t size)
     printf("retro_unserialize terminate...\n");
     custom_texture.Terminate();
     printf("retro_unserialize unserializing...\n");
-    printf("retro_unserialize unserializing...\n");
-result = dc_unserialize(&data_ptr, &total_size, size);
-printf("retro_unserialize set state...\n");
-
-// Reset del contesto grafico dopo il load state
-context_reset_after_restore();
+    result = dc_unserialize(&data_ptr, &total_size, size) ;
     printf("retro_unserialize set state...\n");
     mmu_set_state();
     //printf("retro_unserialize reset cache...\n");
-    //sh4_cpu.ResetCache();
+    mtx_mainloop.lock();
+    sh4_cpu.ResetCache();
+    mtx_mainloop.unlock();
     printf("retro_unserialize dyndirty...\n");
     dsp.dyndirty = true;
     printf("retro_unserialize sh4_sched_ffts...\n");
