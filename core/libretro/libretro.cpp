@@ -2206,13 +2206,13 @@ bool retro_serialize(void *data, size_t size)
 
         printf("DC stopped, acquiring mainloop lock...\n");
         //dc_stop();
-        if (!acquire_mainloop_lock())
+        /*if (!acquire_mainloop_lock())
         {
             printf("Failed to acquire mainloop lock, restarting DC and unlocking serialization mutex.\n");
             dc_start();
             mtx_serialization.unlock();
             return false;
-        }
+        }*/
     }
 #endif
 
