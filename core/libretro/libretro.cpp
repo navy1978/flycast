@@ -2246,13 +2246,13 @@ bool retro_unserialize(const void * data, size_t size)
         	//mtx_serialization.unlock();
         	return false ;
     	}
-  		/*dc_stop();
+  		/*dc_stop();*/
   		if ( !acquire_mainloop_lock())
   		{
-  			dc_start();
-        	mtx_serialization.unlock();
+  			//dc_start();
+        	//mtx_serialization.unlock();
   			return false ;
-  		}*/
+  		}
     }
 #endif
 
@@ -2271,7 +2271,7 @@ bool retro_unserialize(const void * data, size_t size)
     printf("retro_unserialize set state...\n");
     mmu_set_state();
     //printf("retro_unserialize reset cache...\n");
-    mtx_mainloop.lock();
+    //mtx_mainloop.lock();
     sh4_cpu.ResetCache();
     mtx_mainloop.unlock();
     printf("retro_unserialize dyndirty...\n");
@@ -2292,7 +2292,7 @@ bool retro_unserialize(const void * data, size_t size)
 #if !defined(TARGET_NO_THREADS)
     if (settings.rend.ThreadedRendering)
     {
-    	//mtx_mainloop.unlock();
+    	mtx_mainloop.unlock();
     	//mtx_serialization.unlock();
     }
 #endif
