@@ -2143,6 +2143,15 @@ bool wait_until_dc_running()
 bool acquire_mainloop_lock()
 {
     bool result = false;
+    if (!perf_cb.get_time_usec) {
+      printf("Error: perf_cb.get_time_usec is NULL!\n");
+      return;
+  }
+  printf("perf_cb address: %p\n", (void*)&perf_cb);
+  printf("perf_cb.get_time_usec address: %p\n", (void*)perf_cb.get_time_usec);
+
+  printf("perf_cb struct: %p\n", (void*)&perf_cb);
+printf("perf_cb.get_time_usec: %p\n", (void*)perf_cb.get_time_usec);
     retro_time_t start_time = perf_cb.get_time_usec();
     const retro_time_t FIVE_SECONDS = 5 * 1000000;
 
