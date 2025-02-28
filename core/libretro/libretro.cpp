@@ -2129,14 +2129,15 @@ size_t retro_serialize_size(void)
 
 bool wait_until_dc_running()
 {
-    retro_time_t start_time = perf_cb.get_time_usec();
-    const retro_time_t FIVE_SECONDS = 5 * 1000000;
+    //retro_time_t start_time = perf_cb.get_time_usec();
+    //const retro_time_t FIVE_SECONDS = 5 * 1000000;
 
     printf("Starting wait_until_dc_running...\n");
 
     while (!dc_is_running())
     {
-        retro_time_t current_time = perf_cb.get_time_usec();
+      printf("Waitnign.\n");
+      /*retro_time_t current_time = perf_cb.get_time_usec();
         printf("Current time: %lld, Start time: %lld, Time elapsed: %lld\n", current_time, start_time, current_time - start_time);
 
         if (start_time + FIVE_SECONDS < current_time)
@@ -2144,7 +2145,7 @@ bool wait_until_dc_running()
             // timeout elapsed - dc not getting a chance to run - just bail
             printf("Timeout elapsed, DC not running.\n");
             return false;
-        }
+        }*/
     }
 
     printf("DC is running.\n");
