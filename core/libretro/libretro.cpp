@@ -2126,7 +2126,7 @@ size_t retro_serialize_size(void)
 
 
 
-/*bool wait_until_dc_running()
+bool wait_until_dc_running()
 {
     
     printf("Starting wait_until_dc_running...\n");
@@ -2139,7 +2139,7 @@ size_t retro_serialize_size(void)
     printf("DC is running.\n");
     return true;
 }
-
+/*
 bool acquire_mainloop_lock()
 {
     bool result = false;
