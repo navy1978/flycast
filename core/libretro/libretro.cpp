@@ -97,9 +97,7 @@ char slash = '/';
 #include "libretro_core_option_defines.h"
 #include "libretro_core_options.h"
 
-#ifndef TARGET_NO_THREADS
-#define TARGET_NO_THREADS 1
-#endif
+
 
 u32 fskip;
 extern int screen_width;
@@ -2190,7 +2188,12 @@ bool retro_serialize(void *data, size_t size)
     void *data_ptr = data;
     bool result = false;
 
-    printf("Starting retro_serialize...\n");
+    printf("Starting retro_serialize... setting TARGETNO_THREAD to 1\n");
+
+    #ifndef TARGET_NO_THREADS
+    #define TARGET_NO_THREADS 1
+    #endif
+
 
 #if !defined(TARGET_NO_THREADS)
     printf("Attempting to lock serialization mutex...\n");
@@ -2241,6 +2244,10 @@ bool retro_serialize(void *data, size_t size)
     mtx_serialization.unlock();
 #endif
 
+#ifdef TARGET_NO_THREADS
+#undef TARGET_NO_THREADS
+#endif
+
     return result;
 }
 
@@ -2251,6 +2258,9 @@ bool retro_unserialize(const void * data, size_t size)
    bool result = false ;
    int i ;
 
+   #ifndef TARGET_NO_THREADS
+    #define TARGET_NO_THREADS 1
+    #endif
 #if !defined(TARGET_NO_THREADS)
     if (settings.rend.ThreadedRendering)
     {
@@ -2300,6 +2310,10 @@ bool retro_unserialize(const void * data, size_t size)
     	mtx_mainloop.unlock();
     	mtx_serialization.unlock();
     }
+#endif
+
+#ifdef TARGET_NO_THREADS
+#undef TARGET_NO_THREADS
 #endif
 
     return result ;
