@@ -2126,7 +2126,7 @@ size_t retro_serialize_size(void)
 
 
 
-bool wait_until_dc_running()
+/*bool wait_until_dc_running()
 {
     
     printf("Starting wait_until_dc_running...\n");
@@ -2175,6 +2175,51 @@ printf("perf_cb.get_time_usec: %p\n", (void*)perf_cb.get_time_usec);
     }
 
     return result;
+}*/
+
+#include <stdio.h>
+#include <time.h>
+#include <stdbool.h>
+
+bool acquire_mainloop_lock()
+{
+    bool result = false;
+    struct timespec start, current;
+    const long FIVE_SECONDS = 5 * 1000000; // 5 secondi in microsecondi
+
+    // Otteniamo il tempo iniziale
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
+    printf("Starting acquire_mainloop_lock...\n");
+
+    while (!result)
+    {
+        // Otteniamo il tempo attuale
+        clock_gettime(CLOCK_MONOTONIC, &current);
+
+        // Calcoliamo il tempo trascorso in microsecondi
+        long elapsed_time = (current.tv_sec - start.tv_sec) * 1000000 +
+                            (current.tv_nsec - start.tv_nsec) / 1000;
+
+        // Se abbiamo superato il timeout di 5 secondi, usciamo
+        if (elapsed_time > FIVE_SECONDS)
+        {
+            printf("Timeout reached. Failed to acquire mainloop lock.\n");
+            return false;
+        }
+
+        // Proviamo ad acquisire il lock
+        result = mtx_mainloop.trylock();
+
+        if (!result)
+        {
+            printf("Trying to acquire mainloop lock, elapsed: %ld µs\n", elapsed_time);
+            rend_cancel_emu_wait(); // Funzione per gestire l'attesa
+        }
+    }
+
+    printf("Mainloop lock acquired.\n");
+    return true;
 }
 
 #include <stdio.h>
