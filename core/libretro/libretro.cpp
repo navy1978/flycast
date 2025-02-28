@@ -97,6 +97,10 @@ char slash = '/';
 #include "libretro_core_option_defines.h"
 #include "libretro_core_options.h"
 
+#ifndef TARGET_NO_THREADS
+#define TARGET_NO_THREADS 1
+#endif
+
 u32 fskip;
 extern int screen_width;
 extern int screen_height;
@@ -912,8 +916,7 @@ static void update_variables(bool first_startup)
 #if !defined(TARGET_NO_THREADS)
    if (first_startup)
    {
-	   printf("CICCIO DI NONNA PAPAERA!!!!...\n");
-      var.key = CORE_OPTION_NAME "_threaded_rendering";
+	   var.key = CORE_OPTION_NAME "_threaded_rendering";
 
 	   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
 	   {
@@ -2129,15 +2132,14 @@ size_t retro_serialize_size(void)
 
 bool wait_until_dc_running()
 {
-    //retro_time_t start_time = perf_cb.get_time_usec();
-    //const retro_time_t FIVE_SECONDS = 5 * 1000000;
+    retro_time_t start_time = perf_cb.get_time_usec();
+    const retro_time_t FIVE_SECONDS = 5 * 1000000;
 
     printf("Starting wait_until_dc_running...\n");
 
     while (!dc_is_running())
     {
-      printf("Waitnign.\n");
-      /*retro_time_t current_time = perf_cb.get_time_usec();
+        retro_time_t current_time = perf_cb.get_time_usec();
         printf("Current time: %lld, Start time: %lld, Time elapsed: %lld\n", current_time, start_time, current_time - start_time);
 
         if (start_time + FIVE_SECONDS < current_time)
@@ -2145,7 +2147,7 @@ bool wait_until_dc_running()
             // timeout elapsed - dc not getting a chance to run - just bail
             printf("Timeout elapsed, DC not running.\n");
             return false;
-        }*/
+        }
     }
 
     printf("DC is running.\n");
@@ -2192,7 +2194,7 @@ bool retro_serialize(void *data, size_t size)
 
 #if !defined(TARGET_NO_THREADS)
     printf("Attempting to lock serialization mutex...\n");
-   // mtx_serialization.lock();
+    mtx_serialization.lock();
     
     if (settings.rend.ThreadedRendering)
     {
@@ -2205,14 +2207,14 @@ bool retro_serialize(void *data, size_t size)
         }
 
         printf("DC stopped, acquiring mainloop lock...\n");
-        //dc_stop();
-        /*if (!acquire_mainloop_lock())
+        dc_stop();
+        if (!acquire_mainloop_lock())
         {
             printf("Failed to acquire mainloop lock, restarting DC and unlocking serialization mutex.\n");
             dc_start();
             mtx_serialization.unlock();
             return false;
-        }*/
+        }
     }
 #endif
 
@@ -2236,7 +2238,7 @@ bool retro_serialize(void *data, size_t size)
         mtx_mainloop.unlock();
     }
     printf("Unlocking serialization mutex...\n");
-    //mtx_serialization.unlock();
+    mtx_serialization.unlock();
 #endif
 
     return result;
@@ -2252,18 +2254,18 @@ bool retro_unserialize(const void * data, size_t size)
 #if !defined(TARGET_NO_THREADS)
     if (settings.rend.ThreadedRendering)
     {
-    	//mtx_serialization.lock();
+    	mtx_serialization.lock();
     	if ( !wait_until_dc_running()) {
         	mtx_serialization.unlock();
         	return false ;
     	}
-  		/*dc_stop();
+  		dc_stop();
   		if ( !acquire_mainloop_lock())
   		{
   			dc_start();
         	mtx_serialization.unlock();
   			return false ;
-  		}*/
+  		}
     }
 #endif
 
@@ -2296,7 +2298,7 @@ bool retro_unserialize(const void * data, size_t size)
     if (settings.rend.ThreadedRendering)
     {
     	mtx_mainloop.unlock();
-    	//mtx_serialization.unlock();
+    	mtx_serialization.unlock();
     }
 #endif
 
