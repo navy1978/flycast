@@ -2192,7 +2192,7 @@ bool retro_serialize(void *data, size_t size)
 
 #if !defined(TARGET_NO_THREADS)
     printf("Attempting to lock serialization mutex...\n");
-    mtx_serialization.lock();
+   // mtx_serialization.lock();
     
     if (settings.rend.ThreadedRendering)
     {
@@ -2236,7 +2236,7 @@ bool retro_serialize(void *data, size_t size)
         mtx_mainloop.unlock();
     }
     printf("Unlocking serialization mutex...\n");
-    mtx_serialization.unlock();
+    //mtx_serialization.unlock();
 #endif
 
     return result;
