@@ -314,6 +314,8 @@ bool register_unserialize(Array<RegisterStruct>& regs,void **data, unsigned int 
 
 bool dc_serialize(void **data, unsigned int *total_size)
 {
+	printf("I'm serializing.....");
+	
 	int i = 0;
 	int j = 0;
 	serialize_version_enum version = VCUR_LIBRETRO;
