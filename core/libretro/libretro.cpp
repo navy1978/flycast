@@ -2181,7 +2181,7 @@ printf("perf_cb.get_time_usec: %p\n", (void*)perf_cb.get_time_usec);
 
     return result;
 }
-
+/*
 #include <stdio.h>
 #include <time.h>
 #include <stdbool.h>
@@ -2225,7 +2225,7 @@ bool acquire_mainloop_lock()
 
     printf("Mainloop lock acquired.\n");
     return true;
-}
+}*/
 
 #include <stdio.h>
 
