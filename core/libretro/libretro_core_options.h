@@ -1579,6 +1579,7 @@ static INLINE void libretro_set_core_options(retro_environment_t environ_cb,
 
       if (version >= 1)
       {
+         printf("Allocate US array\n");
          /* Allocate US array */
          option_v1_defs_us = (struct retro_core_option_definition *)
                calloc(num_options + 1, sizeof(struct retro_core_option_definition));
@@ -1586,6 +1587,7 @@ static INLINE void libretro_set_core_options(retro_environment_t environ_cb,
          /* Copy parameters from option_defs_us array */
          for (i = 0; i < num_options; i++)
          {
+            printf("Copy parameters from option_defs_us array\n");
             struct retro_core_option_v2_definition *option_def_us = &option_defs_us[i];
             struct retro_core_option_value *option_values         = option_def_us->values;
             struct retro_core_option_definition *option_v1_def_us = &option_v1_defs_us[i];
@@ -1599,6 +1601,7 @@ static INLINE void libretro_set_core_options(retro_environment_t environ_cb,
             /* Values must be copied individually... */
             while (option_values->value)
             {
+               printf("Values must be copied individually\n");
                option_v1_values->value = option_values->value;
                option_v1_values->label = option_values->label;
 
@@ -1610,11 +1613,13 @@ static INLINE void libretro_set_core_options(retro_environment_t environ_cb,
 #ifndef HAVE_NO_LANGEXTRA
          if (environ_cb(RETRO_ENVIRONMENT_GET_LANGUAGE, &language) &&
              (language < RETRO_LANGUAGE_LAST) && (language != RETRO_LANGUAGE_ENGLISH) &&
-             options_intl[language])
+             options_intl[language]){
             option_defs_intl = options_intl[language]->definitions;
-
+            printf("RETRO_ENVIRONMENT_GET_LANGUAGE\n");
+             }
          if (option_defs_intl)
          {
+            printf("Determine number of intl options\n");
             /* Determine number of intl options */
             while (true)
             {
@@ -1631,6 +1636,7 @@ static INLINE void libretro_set_core_options(retro_environment_t environ_cb,
             /* Copy parameters from option_defs_intl array */
             for (i = 0; i < num_options_intl; i++)
             {
+               printf("RETRO_ENVIRONMENT_GET_LANGUAGE\n");
                struct retro_core_option_v2_definition *option_def_intl = &option_defs_intl[i];
                struct retro_core_option_value *option_values           = option_def_intl->values;
                struct retro_core_option_definition *option_v1_def_intl = &option_v1_defs_intl[i];

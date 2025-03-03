@@ -286,6 +286,7 @@ static void input_set_deadzone_trigger( int percent )
 
 void retro_set_environment(retro_environment_t cb)
 {
+   printf("retro_set_environment called!");
    environ_cb = cb;
 
    libretro_set_core_options(environ_cb, &categoriesSupported);
@@ -326,10 +327,14 @@ void retro_init(void)
       log_cb = NULL;
    LogManager::Init((void *)log_cb);
 
-   if (environ_cb(RETRO_ENVIRONMENT_GET_PERF_INTERFACE, &perf_cb))
+   if (environ_cb(RETRO_ENVIRONMENT_GET_PERF_INTERFACE, &perf_cb)){
+      printf("perf_get_cpu_features_cb = perf_cb.get_cpu_features\n");
       perf_get_cpu_features_cb = perf_cb.get_cpu_features;
-   else
+   }
+   else{
       perf_get_cpu_features_cb = NULL;
+      printf("perf_get_cpu_features_cb = NULL\n");
+   }
 
    // Set color mode
    unsigned color_mode = RETRO_PIXEL_FORMAT_XRGB8888;
@@ -2139,7 +2144,7 @@ bool wait_until_dc_running()
     printf("DC is running.\n");
     return true;
 }
-/*
+
 bool acquire_mainloop_lock()
 {
     bool result = false;
@@ -2175,7 +2180,7 @@ printf("perf_cb.get_time_usec: %p\n", (void*)perf_cb.get_time_usec);
     }
 
     return result;
-}*/
+}
 
 #include <stdio.h>
 #include <time.h>
